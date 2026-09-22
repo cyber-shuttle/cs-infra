@@ -45,10 +45,9 @@ on loopback. The two Custos services can't be limited to loopback, so their unit
 ports instead.
 
 The Jupyter site has no process of its own. `up.sh` builds it on your machine from the `cs-jupyter` checkout
-with `bun run build`, merges this deployment's settings from `jupyter-lite.json` here into the built
-`jupyter-lite.json` (today just `cybershuttleControlApiUrl`, the cs-plane API it calls), and copies the result to
-`/var/www/jupyter.cybershuttle.org` on the VM, replacing what was there. Its nginx server block is in
-`root/etc/nginx/conf.d/csvm.conf`, and it has no secrets.
+with `bun run build`, points `cybershuttleControlApiUrl` in the built `jupyter-lite.json` at
+`https://jupyterapi.cybershuttle.org/api/v1`, and copies the resulting `dist/` to
+`/var/www/jupyter.cybershuttle.org` on the VM, replacing what was there.
 
 Custos and cs-plane share one Postgres database, `cybershuttle`, each in its own schema. Both run as `ubuntu` and
 connect over Postgres's local socket, which authenticates them by their system user, so the database has no

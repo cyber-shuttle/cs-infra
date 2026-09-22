@@ -33,9 +33,7 @@ trap 'rm -rf "$stage"' EXIT
 (cd "$custos" && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o "$stage/custos-server" ./cmd/server)
 (cd "$cs_jupyter" && bun install --frozen-lockfile && bun run build)
 cp -R "$cs_jupyter/dist" "$stage/site"
-# The build is deployment-neutral; this deployment's site settings come from jupyter-lite.json beside this script.
-python3 -c 'import json, sys; site, ours = (json.load(open(p)) for p in sys.argv[1:]); site["jupyter-config-data"].update(ours["jupyter-config-data"]); json.dump(site, open(sys.argv[1], "w"), indent=2)' \
-    "$stage/site/jupyter-lite.json" "$here/jupyter-lite.json"
+perl -pi -e 's#("cybershuttleControlApiUrl": *)"[^"]*"#$1"https://jupyterapi.cybershuttle.org/api/v1"#' "$stage/site/jupyter-lite.json"
 cp -R "$custos/web" "$stage/web"
 cp "$custos/config/custos.yaml" "$stage/custos.yaml"
 cp -R "$here/root" "$here/install.sh" "$stage/"
