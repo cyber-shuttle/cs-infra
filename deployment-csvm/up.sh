@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Builds deployment-csvm and installs it on the host over ssh. Each secret is decrypted with SOPS straight
-# into its path on the host, so plaintext exists nowhere else. Certificates, the Postgres volume and csctl's state
-# are left alone; everything else is rebuilt and reinstalled on each run.
+# Builds deployment-csvm and installs it on the host over ssh. Each secret is decrypted with SOPS straight into its
+# path on the host, so plaintext exists nowhere else. Certificates, the database and csctl's state are left alone;
+# everything else is rebuilt and reinstalled on each run.
 set -euo pipefail
 here=$(cd "$(dirname "$0")" && pwd)
 host=${CSVM_HOST:-cs-api}
@@ -17,8 +17,6 @@ secrets() {
     cat <<'MAP'
 csctl.sops.env          /etc/default/csctl
 custos.sops.env         /etc/default/custos
-custos.sops.yaml        /etc/custos/custos.yaml
-postgres.sops.env       /etc/custos/postgres.env
 custos-portal.sops.env  /opt/custos/web/.env.local
 MAP
 }

@@ -1,14 +1,17 @@
 [Unit]
 Description=Apache Airavata Custos core
-After=network-online.target docker.service
-Wants=network-online.target
+After=network-online.target postgresql.service
+Wants=network-online.target postgresql.service
 
 [Service]
 User=ubuntu
 Group=ubuntu
 EnvironmentFile=/etc/default/custos
 WorkingDirectory=/opt/custos
+# Custos binds every interface and has no setting to narrow it, so this unit keeps its port to loopback itself.
+ExecStartPre=+/bin/sh -c 'for t in iptables ip6tables; do $$t -C INPUT -p tcp --dport 8100 ! -i lo -j DROP 2>/dev/null || $$t -I INPUT -p tcp --dport 8100 ! -i lo -j DROP; done'
 ExecStart=/usr/local/bin/custos-server
+ExecStopPost=+/bin/sh -c 'for t in iptables ip6tables; do $$t -D INPUT -p tcp --dport 8100 ! -i lo -j DROP 2>/dev/null || true; done'
 Restart=always
 RestartSec=3
 

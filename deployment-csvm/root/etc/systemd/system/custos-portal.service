@@ -8,7 +8,11 @@ User=ubuntu
 Group=ubuntu
 Environment=PORT=3100
 WorkingDirectory=/opt/custos/web
-ExecStart=/usr/bin/node node_modules/next/dist/bin/next start -p 3100
+# The portal binds every interface, and narrowing it with --hostname breaks its internal rewrites behind TLS, so this
+# unit keeps its port to loopback itself.
+ExecStartPre=+/bin/sh -c 'for t in iptables ip6tables; do $$t -C INPUT -p tcp --dport 3100 ! -i lo -j DROP 2>/dev/null || $$t -I INPUT -p tcp --dport 3100 ! -i lo -j DROP; done'
+ExecStart=/opt/node/bin/node node_modules/next/dist/bin/next start -p 3100
+ExecStopPost=+/bin/sh -c 'for t in iptables ip6tables; do $$t -D INPUT -p tcp --dport 3100 ! -i lo -j DROP 2>/dev/null || true; done'
 Restart=always
 RestartSec=3
 
