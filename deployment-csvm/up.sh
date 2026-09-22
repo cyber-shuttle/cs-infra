@@ -6,7 +6,7 @@ host=${CSVM_HOST:-cs-api}
 cs_plane=${CS_PLANE:-$here/../../cs-plane}
 cs_jupyter=${CS_JUPYTER:-$here/../../cs-jupyter}
 custos=${XDG_CACHE_HOME:-$HOME/.cache}/cs-infra/airavata-custos
-key=${CS_INFRA_KEY:-$HOME/.config/cybershuttle/cs-infra-age.key}
+key=${CS_INFRA_KEY:-$HOME/.config/cybershuttle/sops.key}
 secrets() {
     cat <<'MAP'
 cs-plane.env       /etc/default/cs-plane

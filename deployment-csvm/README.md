@@ -11,7 +11,7 @@ checks users against. Everything these need is installed by `up.sh`, so the VM c
   Ubuntu cloud images come. Ports 80 and 443 must be open to the internet; nothing else needs to be.
 - **DNS records** pointing `jupyter.cybershuttle.org`, `jupyterapi.cybershuttle.org` and
   `custos.cybershuttle.org` at the VM.
-- **On your machine:** Go 1.26, Bun, rsync, age, the age key at `~/.config/cybershuttle/cs-infra-age.key`, and
+- **On your machine:** Go 1.26, Bun, rsync, age, the age key at `~/.config/cybershuttle/sops.key`, and
   checkouts of `cs-plane` and `cs-jupyter` next to `cs-infra`.
 
 ## Up and down
@@ -69,7 +69,7 @@ aren't secret sit in the service units instead.
 To set a value, encrypt it and put the output after `NAME=` in the file, then run `up.sh`:
 
 ```bash
-key=~/.config/cybershuttle/cs-infra-age.key
+key=~/.config/cybershuttle/sops.key
 printf %s 'the value' | age -r "$(age-keygen -y "$key")" | base64 | tr -d '\n'
 ```
 
