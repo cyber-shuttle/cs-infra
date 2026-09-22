@@ -1,15 +1,11 @@
 [Unit]
-Description=CyberShuttle control plane (csctl serve)
-After=network-online.target postgresql.service
-Wants=network-online.target postgresql.service
+Description=CyberShuttle control plane
+After=postgresql.service
 
 [Service]
 User=ubuntu
-Group=ubuntu
-Environment=HOME=/home/ubuntu
 EnvironmentFile=/etc/default/csctl
 Environment=CSCTL_DATABASE_URL=postgres:///cybershuttle?host=/var/run/postgresql&search_path=csctl
-WorkingDirectory=/home/ubuntu
 ExecStart=/usr/local/bin/csctl serve --listen 127.0.0.1:8045 --oidc-client-id cilogon:oa4mp,2012:/client_id/4738a93a9b45576c741063718d55143b --custos-url https://custos.cybershuttle.org --allowed-origin https://jupyter.cybershuttle.org --allowed-origin http://127.0.0.1
 Restart=always
 RestartSec=3

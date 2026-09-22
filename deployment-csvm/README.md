@@ -64,7 +64,8 @@ To change a value, edit the file with sops and run `up.sh`:
 SOPS_AGE_KEY_FILE=~/.config/cybershuttle/cs-infra-age.key sops edit secrets/csctl.sops.env
 ```
 
-The age key exists only on your machine. Keep a copy in a password manager, because nothing can decrypt these
+The `sops_*` lines in each file are SOPS's own key and integrity data; sops maintains them, so leave them be. The
+age key exists only on your machine. Keep a copy in a password manager, because nothing can decrypt these
 files without it. To let someone else deploy, add their age public key to `/.sops.yaml` and run
 `sops updatekeys` on each file.
 

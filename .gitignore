@@ -1,4 +1,3 @@
 # Only SOPS-encrypted files may live under secrets/; anything else there is plaintext by mistake.
 **/secrets/*
 !**/secrets/*.sops.env
-!**/secrets/*.sops.yaml
