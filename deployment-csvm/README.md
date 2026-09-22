@@ -34,6 +34,8 @@ remain installed because other sites on the VM may rely on them.
 
 ## What runs on the VM
 
+Each name has its own nginx file in `root/etc/nginx/conf.d/`, named after it.
+
 | Name | Serves | Behind it |
 |---|---|---|
 | `jupyter.cybershuttle.org` | the Jupyter site | static files nginx serves from `/var/www/jupyter.cybershuttle.org` |

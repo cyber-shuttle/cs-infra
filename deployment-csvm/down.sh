@@ -7,7 +7,7 @@ set -euo pipefail
 ssh "${CSVM_HOST:-cs-api}" "sudo PURGE='${1:-}' bash -s" <<'REMOTE'
 set -euo pipefail
 systemctl disable --now cs-plane custos-portal custos postgresql 2>/dev/null || true
-rm -f /etc/nginx/conf.d/csvm.conf
+rm -f /etc/nginx/conf.d/{jupyter,jupyterapi,custos}.cybershuttle.org.conf
 if [ -n "$PURGE" ]; then
     certbot delete --non-interactive --cert-name csvm >/dev/null 2>&1 || true
     DEBIAN_FRONTEND=noninteractive apt-get purge -y -qq --auto-remove postgresql postgresql-common >/dev/null
