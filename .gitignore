@@ -1,4 +1,4 @@
-# Filled-in secrets belong on the host only.
+# Only SOPS-encrypted files may live under secrets/; anything else there is plaintext by mistake.
 **/secrets/**/*
 !**/secrets/**/
-!**/secrets/**/*.example
+!**/secrets/**/*.sops

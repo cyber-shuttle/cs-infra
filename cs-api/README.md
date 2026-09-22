@@ -12,38 +12,34 @@ nginx terminates TLS for every name; the services listen on loopback only.
 Custos core stores its data in Postgres 17, the `custos_db` container on `127.0.0.1:5433` with the
 `custos_db_data` volume. csctl keeps its own state under `/home/ubuntu/.cybershuttle/control`.
 
-## Up
+## Up and down
 
 ```bash
-AIRAVATA_CUSTOS=../../worktree-custos-login/airavata-custos ./up.sh
+./up.sh     # build, decrypt secrets onto the host, install, restart, check
+./down.sh   # stop services, Postgres and both nginx sites; keep all data
 ```
 
-`up.sh` builds csctl, `custos-server` and the Jupyter site on this machine, copies them with the Custos portal
-source and this directory's configuration to `/tmp/cs-api-deploy` on the host, and runs `install.sh` there. That
-installs `root/` over `/`, enables both nginx sites, starts Postgres, builds the portal with pnpm, restarts the
-three services, and checks each public name. Rerunning it redeploys whatever the checkouts now hold.
+`up.sh` first decrypts every secret once, so a missing key stops it before anything changes. It then builds csctl,
+`custos-server` and the Jupyter site on this machine and copies them, with the Custos portal source and `root/`, to
+`/tmp/cs-api-deploy` on the host. Each secret goes from `sops decrypt` over ssh straight into its path on the host
+as `root:ubuntu 640`, and `install.sh` installs `root/` over `/`, enables both nginx sites, starts Postgres, builds
+the portal with pnpm, restarts the three services and checks each public name. `down.sh` leaves secrets,
+certificates, binaries, the database volume and csctl's state in place, so `up.sh` restores the deployment as it was.
+
+`cs-control` and `cs-jupyter` are taken from the checkouts beside this repository's main checkout, so a deploy
+ships whatever they hold. Custos is cloned into `~/.cache/cs-infra/airavata-custos` at the commit pinned in `up.sh`.
 
 | Variable | Default |
 |---|---|
-| `CS_API_HOST` | `cs-api` (an ssh alias with passwordless sudo) |
-| `CS_CONTROL`, `CS_JUPYTER`, `AIRAVATA_CUSTOS` | sibling checkouts of this repository |
-| `CERTBOT_EMAIL` | needed only when a certificate does not exist yet |
+| `CS_API_HOST` | `cs-api`, an ssh alias with passwordless sudo |
+| `CS_CONTROL`, `CS_JUPYTER` | sibling checkouts |
+| `AIRAVATA_CUSTOS` | the pinned clone; set it to deploy another checkout |
+| `SOPS_AGE_KEY_FILE` | `~/.config/cybershuttle/cs-infra-age.key` |
 
-## Down
+## Secrets
 
-```bash
-./down.sh
-```
-
-Stops and disables the three services, stops Postgres and disables both nginx sites. Secrets, certificates,
-binaries, the database volume and csctl's state remain, so `up.sh` restores the deployment as it was.
-
-## Prerequisites
-
-- **This machine:** Go 1.26, Bun, rsync, and checkouts of `cs-control`, `cs-jupyter` and `apache/airavata-custos`.
-- **The host:** nginx, certbot with `python3-certbot-nginx`, Docker, Node 22 with pnpm 9.15.9, and rsync.
-- **DNS:** A records for all three names pointing at the host.
-- **Secrets on the host**, created from `secrets/` on the first run, which then stops until they are filled in:
+Every host secret is committed under `secrets/`, SOPS-encrypted to the age recipient in `/.sops.yaml`, at the
+path it is installed to plus `.sops`. The repository is the source of truth: each `up.sh` overwrites the host copy.
 
 | File | Holds |
 |---|---|
@@ -52,6 +48,22 @@ binaries, the database volume and csctl's state remain, so `up.sh` restores the 
 | `/etc/custos/custos.yaml` | Custos core config, including the Postgres password |
 | `/etc/custos/postgres.env` | the Postgres credentials used when `custos_db` is first created |
 | `/opt/custos/web/.env.local` | the portal's NextAuth secret and CILogon client secret |
+
+```bash
+export SOPS_AGE_KEY_FILE=~/.config/cybershuttle/cs-infra-age.key
+sops edit secrets/etc/default/csctl.sops          # change a value, then ./up.sh
+sops encrypt --filename-override secrets/etc/x.sops x > secrets/etc/x.sops   # add one
+```
+
+The private key exists only at `~/.config/cybershuttle/cs-infra-age.key`; keep a copy in a password manager, since
+losing it leaves the encrypted files unreadable. To let someone else deploy, add their age public key to
+`/.sops.yaml` and run `sops updatekeys` on each file.
+
+## Prerequisites
+
+- **This machine:** Go 1.26, Bun, rsync, sops and the age key, and checkouts of `cs-control` and `cs-jupyter`.
+- **The host:** nginx, certbot with `python3-certbot-nginx`, Docker, Node 22 with pnpm 9.15.9, and rsync.
+- **DNS:** A records for all three names pointing at the host.
 
 ## Outside this repository
 

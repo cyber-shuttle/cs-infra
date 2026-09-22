@@ -1,0 +1,3 @@
+creation_rules:
+  - path_regex: ^cs-api/secrets/
+    age: age1z8gtue2yq042arkmrxqfnc7hp06t0u5lh3n78wy480s7upsu7aeqn88ea8

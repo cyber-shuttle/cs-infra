@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Runs on the host as root, from the directory up.sh staged. It never overwrites a secret, certificate, database
-# volume or csctl state that already exists; a missing secret is created from its template and stops the run.
+# Runs on the host as root, from the directory up.sh staged, after up.sh has decrypted the secrets into place. It
+# never replaces a certificate, the database volume or csctl's state that already exists.
 set -euo pipefail
 src=$(cd "$(dirname "$0")" && pwd)
 
@@ -8,24 +8,11 @@ for tool in nginx certbot docker node pnpm rsync; do
     command -v "$tool" >/dev/null || { echo "missing $tool; see cs-api/README.md" >&2; exit 1; }
 done
 
-missing=()
-while IFS= read -r template; do
-    target=/${template#"$src/secrets/"}
-    target=${target%.example}
-    [ -e "$target" ] && continue
-    install -D -o root -g ubuntu -m 640 "$template" "$target"
-    missing+=("$target")
-done < <(find "$src/secrets" -type f -name '*.example')
-if ((${#missing[@]})); then
-    printf 'fill in, then rerun up.sh: %s\n' "${missing[@]}" >&2
-    exit 1
-fi
-
 certificate() {
     [ -e "/etc/letsencrypt/live/$1/fullchain.pem" ] && return
     local domains=()
     for domain in "$@"; do domains+=(-d "$domain"); done
-    certbot certonly --nginx --non-interactive --agree-tos -m "${CERTBOT_EMAIL:?set CERTBOT_EMAIL to issue $1}" \
+    certbot certonly --nginx --non-interactive --agree-tos --register-unsafely-without-email \
         --cert-name "$1" "${domains[@]}"
 }
 certificate jupyter.cybershuttle.org jupyterapi.cybershuttle.org
