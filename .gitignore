@@ -1,0 +1,4 @@
+# Filled-in secrets belong on the host only.
+**/secrets/**/*
+!**/secrets/**/
+!**/secrets/**/*.example

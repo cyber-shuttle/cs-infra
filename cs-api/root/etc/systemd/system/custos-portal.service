@@ -1,0 +1,16 @@
+[Unit]
+Description=Apache Airavata Custos portal
+After=network-online.target custos.service
+Wants=network-online.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+Environment=PORT=3100
+WorkingDirectory=/opt/custos/web
+ExecStart=/usr/bin/node node_modules/next/dist/bin/next start -p 3100
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
