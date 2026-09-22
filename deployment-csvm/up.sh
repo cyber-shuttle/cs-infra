@@ -6,17 +6,23 @@ host=${CSVM_HOST:-cs-api}
 cs_plane=${CS_PLANE:-$here/../../cs-plane}
 cs_jupyter=${CS_JUPYTER:-$here/../../cs-jupyter}
 custos=${XDG_CACHE_HOME:-$HOME/.cache}/cs-infra/airavata-custos
-export SOPS_AGE_KEY_FILE=${SOPS_AGE_KEY_FILE:-$HOME/.config/cybershuttle/cs-infra-age.key}
+key=${CS_INFRA_KEY:-$HOME/.config/cybershuttle/cs-infra-age.key}
 secrets() {
     cat <<'MAP'
-cs-plane.sops.env       /etc/default/cs-plane
-custos.sops.env         /etc/default/custos
-custos-portal.sops.env  /opt/custos/web/.env.local
+cs-plane.env       /etc/default/cs-plane
+custos.env         /etc/default/custos
+custos-portal.env  /opt/custos/web/.env.local
 MAP
+}
+# Each line of a secrets file is NAME=value, with the value age-encrypted and base64-encoded.
+decrypt() {
+    while IFS= read -r line; do
+        printf '%s=%s\n' "${line%%=*}" "$(printf '%s' "${line#*=}" | base64 -d | age -d -i "$key")"
+    done < "$here/secrets/$1"
 }
 
 # A missing key must fail here, before a truncated secret could reach the VM.
-secrets | while read -r file _; do sops decrypt "$here/secrets/$file" >/dev/null; done
+secrets | while read -r file _; do decrypt "$file" >/dev/null; done
 
 [ -d "$custos" ] || git clone -q https://github.com/apache/airavata-custos "$custos"
 git -C "$custos" fetch -q && git -C "$custos" checkout -q --detach 5d840613f48b8de29e30e16027633bdc3ee16b46
@@ -35,6 +41,6 @@ cp -R "$here/root" "$here/install.sh" "$stage/"
 rsync -az --delete "$stage/" "$host:/tmp/deployment-csvm/"
 secrets | while read -r file target; do
     # shellcheck disable=SC2029 # the target path is meant to expand here
-    sops decrypt "$here/secrets/$file" | ssh "$host" "sudo install -D -o root -g ubuntu -m 640 /dev/stdin '$target'"
+    decrypt "$file" | ssh "$host" "sudo install -D -o root -g ubuntu -m 640 /dev/stdin '$target'"
 done
 ssh "$host" 'sudo bash /tmp/deployment-csvm/install.sh'

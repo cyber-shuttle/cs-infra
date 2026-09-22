@@ -11,7 +11,7 @@ checks users against. Everything these need is installed by `up.sh`, so the VM c
   Ubuntu cloud images come. Ports 80 and 443 must be open to the internet; nothing else needs to be.
 - **DNS records** pointing `jupyter.cybershuttle.org`, `jupyterapi.cybershuttle.org` and
   `custos.cybershuttle.org` at the VM.
-- **On your machine:** Go 1.26, Bun, rsync, sops, the age key at `~/.config/cybershuttle/cs-infra-age.key`, and
+- **On your machine:** Go 1.26, Bun, rsync, age, the age key at `~/.config/cybershuttle/cs-infra-age.key`, and
   checkouts of `cs-plane` and `cs-jupyter` next to `cs-infra`.
 
 ## Up and down
@@ -55,26 +55,26 @@ variable, so `install.sh` moves it to 8100, where it stays clear of anything els
 
 ## Secrets
 
-The secrets live in `secrets/`, encrypted with SOPS. The variable names are readable and only their values are
-encrypted. Each `up.sh` writes them to the VM, so this repository is where they are changed. Settings that
+The secrets live in `secrets/`, one `NAME=value` per line, with each value encrypted with
+[age](https://age-encryption.org) and base64-encoded, so the variable names stay readable. The files hold
+nothing else. Each `up.sh` writes them to the VM, so this repository is where they are changed. Settings that
 aren't secret sit in the service units instead.
 
 | File | Installed to | Variables |
 |---|---|---|
-| `cs-plane.sops.env` | `/etc/default/cs-plane` | `CS_OIDC_CLIENT_SECRET` |
-| `custos.sops.env` | `/etc/default/custos` | `CUSTOS_BOOTSTRAP_ADMIN_EMAIL` |
-| `custos-portal.sops.env` | `/opt/custos/web/.env.local` | `NODE_ENV`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `CUSTOS_CORE_API_BASE_URL`, `OIDC_ISSUER_URL`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `NEXT_PUBLIC_PORTAL_USE_MSW`, `NEXT_PUBLIC_PORTAL_BUILD_SHA` |
+| `cs-plane.env` | `/etc/default/cs-plane` | `CS_OIDC_CLIENT_SECRET` |
+| `custos.env` | `/etc/default/custos` | `CUSTOS_BOOTSTRAP_ADMIN_EMAIL` |
+| `custos-portal.env` | `/opt/custos/web/.env.local` | `NODE_ENV`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `CUSTOS_CORE_API_BASE_URL`, `OIDC_ISSUER_URL`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `NEXT_PUBLIC_PORTAL_USE_MSW`, `NEXT_PUBLIC_PORTAL_BUILD_SHA` |
 
-To change a value, edit the file with sops and run `up.sh`:
+To set a value, encrypt it and put the output after `NAME=` in the file, then run `up.sh`:
 
 ```bash
-SOPS_AGE_KEY_FILE=~/.config/cybershuttle/cs-infra-age.key sops edit secrets/cs-plane.sops.env
+key=~/.config/cybershuttle/cs-infra-age.key
+printf %s 'the value' | age -r "$(age-keygen -y "$key")" | base64 | tr -d '\n'
 ```
 
-The `sops_*` lines in each file are SOPS's own key and integrity data; sops maintains them, so leave them be. The
-age key exists only on your machine. Keep a copy in a password manager, because nothing can decrypt these
-files without it. To let someone else deploy, add their age public key to `/.sops.yaml` and run
-`sops updatekeys` on each file.
+The key exists only on your machine, and nothing about it is stored here: its public half is derived from it
+when encrypting. Keep a copy in a password manager, because nothing can decrypt these values without it.
 
 ## Outside the VM
 
