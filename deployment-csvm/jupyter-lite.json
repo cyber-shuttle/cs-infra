@@ -1,0 +1,5 @@
+{
+  "jupyter-config-data": {
+    "cybershuttleControlApiUrl": "https://jupyterapi.cybershuttle.org/api/v1"
+  }
+}
