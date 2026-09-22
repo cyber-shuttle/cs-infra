@@ -5,6 +5,6 @@ under `root/`, its SOPS-encrypted secrets under `secrets/`, and `up.sh` / `down.
 
 | Deployment | Host | Serves |
 |---|---|---|
-| [cs-api](cs-api/README.md) | `cs-api` (3.142.234.94) | CyberShuttle Jupyter, its csctl control API, and Custos |
+| [deployment-csvm](deployment-csvm/README.md) | `cs-api` (3.142.234.94) | CyberShuttle Jupyter, its csctl control API, and Custos |
 
 Secrets are committed only SOPS-encrypted to the age recipient in `.sops.yaml`; see each deployment's README.

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Runs on the host as root, from the directory up.sh staged, after up.sh has decrypted the secrets into place. It
+# Runs on the host as root from /tmp/deployment-csvm, after up.sh has decrypted the secrets into place. It
 # never replaces a certificate, the database volume or csctl's state that already exists.
 set -euo pipefail
 src=$(cd "$(dirname "$0")" && pwd)
 
 for tool in nginx certbot docker node pnpm rsync; do
-    command -v "$tool" >/dev/null || { echo "missing $tool; see cs-api/README.md" >&2; exit 1; }
+    command -v "$tool" >/dev/null || { echo "missing $tool; see deployment-csvm/README.md" >&2; exit 1; }
 done
 
 certificate() {
