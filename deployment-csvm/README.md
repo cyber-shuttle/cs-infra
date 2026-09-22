@@ -22,11 +22,11 @@ checks users against. Everything these need is installed by `up.sh`, so the VM c
 ./down.sh --purge   # remove everything up.sh put on the VM, data included
 ```
 
-`up.sh` builds cs-plane's `cs` binary, the Custos server and the Jupyter site on your machine and copies them to the VM. It then
-decrypts each secret straight into its place on the VM, installs the packages and Node, prepares the database,
-issues any missing TLS certificates, and restarts the services. Running it again redeploys whatever the
-checkouts hold. Custos is built from the commit pinned in `up.sh`. By default it deploys to the ssh destination
-`cs-api`; set `CSVM_HOST` to deploy elsewhere.
+`up.sh` builds cs-plane's `cs` binary, the Custos server and the Jupyter site on your machine and copies them to
+the VM. It then decrypts each secret straight into its place on the VM, installs the packages and Node, prepares
+the database, issues any missing TLS certificates, and restarts the services. Running it again redeploys
+whatever the checkouts hold. Custos is built from the commit pinned in `up.sh`. By default it deploys to the ssh
+destination `cs-api`; set `CSVM_HOST` to deploy elsewhere.
 
 `down.sh` keeps everything in place, so a later `up.sh` brings the deployment back as it was. With `--purge` it
 also deletes the database, cs-plane's state, the certificates, the secrets, Postgres and Node. nginx and certbot
@@ -36,13 +36,18 @@ remain installed because other sites on the VM may rely on them.
 
 | Name | Serves | Behind it |
 |---|---|---|
-| `jupyter.cybershuttle.org` | the Jupyter site | files in `/var/www/jupyter.cybershuttle.org` |
+| `jupyter.cybershuttle.org` | the Jupyter site | static files nginx serves from `/var/www/jupyter.cybershuttle.org` |
 | `jupyterapi.cybershuttle.org` | the cs-plane API | `cs-plane.service` on port 8045 |
 | `custos.cybershuttle.org` | the Custos portal, and Custos's `/me` for cs-plane | `custos-portal.service` on 3100, `custos.service` on 8100 |
 
 nginx terminates TLS for all three names and is the only thing reachable from outside. cs-plane and Postgres listen
 on loopback. The two Custos services can't be limited to loopback, so their units drop outside traffic to their
 ports instead.
+
+The Jupyter site has no process of its own. `up.sh` builds it on your machine from the `cs-jupyter` checkout
+with `bun run build`, points `cybershuttleControlApiUrl` in the built `jupyter-lite.json` at
+`https://jupyterapi.cybershuttle.org/api/v1`, and copies the resulting `dist/` to
+`/var/www/jupyter.cybershuttle.org` on the VM, replacing what was there.
 
 Custos and cs-plane share one Postgres database, `cybershuttle`, each in its own schema. Both run as `ubuntu` and
 connect over Postgres's local socket, which authenticates them by their system user, so the database has no
@@ -80,8 +85,8 @@ when encrypting. Keep a copy in a password manager, because nothing can decrypt 
 
 The running services depend on three things this repository does not create:
 
-- The CILogon client cs-plane uses (`…/4738a93a9b45576c741063718d55143b`) must allow PKCE and the device flow, with
-  `https://jupyter.cybershuttle.org/lab/index.html` as a redirect.
+- The CILogon client cs-plane uses (`…/4738a93a9b45576c741063718d55143b`) must allow PKCE and the device flow,
+  with `https://jupyter.cybershuttle.org/lab/index.html` as a redirect.
 - The CILogon client the Custos portal uses (`…/22de898fb3370485836d8e52f8e12103`) must list
   `https://custos.cybershuttle.org/api/auth/callback/oidc` as a redirect.
 - Users link a Microsoft or GitHub account for Dev Tunnels, and reach their own Slurm clusters over SSH.
