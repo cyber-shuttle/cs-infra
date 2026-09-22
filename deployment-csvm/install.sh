@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Runs as root on the VM from /tmp/deployment-csvm, after up.sh has put the secrets in place. Safe to rerun: the
-# certificate, the database and csctl's state are kept.
+# certificate, the database and cs-plane's state are kept.
 set -euo pipefail
 cd "$(dirname "$0")"
 node=v22.23.2
@@ -20,7 +20,7 @@ SELECT 'CREATE ROLE ubuntu LOGIN' WHERE NOT EXISTS (SELECT FROM pg_roles WHERE r
 SELECT 'CREATE DATABASE cybershuttle OWNER ubuntu' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'cybershuttle') \gexec
 \connect cybershuttle
 CREATE SCHEMA IF NOT EXISTS custos AUTHORIZATION ubuntu;
-CREATE SCHEMA IF NOT EXISTS csctl AUTHORIZATION ubuntu;
+CREATE SCHEMA IF NOT EXISTS cs_plane AUTHORIZATION ubuntu;
 SQL
 
 [ -e /etc/letsencrypt/live/csvm ] || certbot certonly --nginx --non-interactive --agree-tos --register-unsafely-without-email \
@@ -29,7 +29,10 @@ cp -r root/. /
 nginx -t
 systemctl reload nginx
 
-install -m 755 csctl custos-server /usr/local/bin/
+install -m 755 cs custos-server /usr/local/bin/
+# Upstream's config, unchanged except its fixed port 8080, which it offers no variable for and which other services
+# on a shared VM often hold.
+sed 's/^    port: 8080$/    port: 8100/' custos.yaml > /opt/custos/custos.yaml
 rsync -a --delete site/ /var/www/jupyter.cybershuttle.org/
 rsync -a --delete --exclude node_modules --exclude .next --exclude .env.local web/ /opt/custos/web/
 chown -R ubuntu:ubuntu /opt/custos
@@ -37,8 +40,8 @@ sudo -u ubuntu -H env PATH="/opt/node/bin:$PATH" COREPACK_ENABLE_DOWNLOAD_PROMPT
     bash -c 'cd /opt/custos/web && corepack pnpm install --frozen-lockfile && corepack pnpm build'
 
 systemctl daemon-reload
-systemctl enable --quiet custos custos-portal csctl
-systemctl restart custos custos-portal csctl
+systemctl enable --quiet custos custos-portal cs-plane
+systemctl restart custos custos-portal cs-plane
 
 for url in https://jupyter.cybershuttle.org/lab/index.html https://jupyterapi.cybershuttle.org/api/v1/oauth/config https://custos.cybershuttle.org/; do
     curl -fsS -o /dev/null --retry 15 --retry-delay 2 --retry-all-errors -H 'Origin: https://jupyter.cybershuttle.org' "$url" && echo "ok $url"
