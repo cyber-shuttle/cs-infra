@@ -39,7 +39,7 @@ Each name has its own nginx file in `root/etc/nginx/conf.d/`, named after it.
 | Name | Serves | Behind it |
 |---|---|---|
 | `jupyter.cybershuttle.org` | the Jupyter site | static files nginx serves from `/var/www/jupyter.cybershuttle.org` |
-| `jupyterapi.cybershuttle.org` | the cs-plane API | `cs-plane.service` on port 8045 |
+| `jupyterapi.cybershuttle.org` | the cs-plane API, and the link each session job dials back on | `cs-plane.service` on port 8045 |
 | `custos.cybershuttle.org` | the Custos portal, and Custos's `/me` for cs-plane | `custos-portal.service` on 3100, `custos.service` on 8100 |
 
 nginx terminates TLS for all three names and is the only thing reachable from outside. cs-plane and Postgres listen
