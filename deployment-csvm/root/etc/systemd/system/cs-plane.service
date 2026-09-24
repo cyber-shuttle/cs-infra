@@ -6,7 +6,7 @@ After=postgresql.service
 User=ubuntu
 EnvironmentFile=/etc/default/cs-plane
 Environment=CS_DATABASE_URL=postgres:///cybershuttle?host=/var/run/postgresql&search_path=cs_plane
-ExecStart=/usr/local/bin/cs serve --listen 127.0.0.1:8045 --oidc-client-id cilogon:oa4mp,2012:/client_id/4738a93a9b45576c741063718d55143b --custos-url https://custos.cybershuttle.org --allowed-origin https://jupyter.cybershuttle.org --allowed-origin http://127.0.0.1
+ExecStart=/usr/local/bin/cs serve --listen 127.0.0.1:8045 --oidc-client-id cilogon:oa4mp,2012:/client_id/4738a93a9b45576c741063718d55143b --custos-url https://custos.cybershuttle.org --public-url https://jupyterapi.cybershuttle.org --allowed-origin https://jupyter.cybershuttle.org --allowed-origin http://127.0.0.1
 Restart=always
 RestartSec=3
 
