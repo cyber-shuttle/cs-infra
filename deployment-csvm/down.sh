@@ -6,15 +6,15 @@ set -euo pipefail
 # shellcheck disable=SC2029 # --purge is meant to expand here and travel to the VM
 ssh "${CSVM_HOST:-cs-api}" "sudo PURGE='${1:-}' bash -s" <<'REMOTE'
 set -euo pipefail
-systemctl disable --now cs-plane custos-portal custos postgresql 2>/dev/null || true
-rm -f /etc/nginx/conf.d/{jupyter,jupyterapi,custos}.cybershuttle.org.conf
+systemctl disable --now cs-plane postgresql 2>/dev/null || true
+rm -f /etc/nginx/conf.d/{jupyter,jupyterapi}.cybershuttle.org.conf
 if [ -n "$PURGE" ]; then
     certbot delete --non-interactive --cert-name csvm >/dev/null 2>&1 || true
     DEBIAN_FRONTEND=noninteractive apt-get purge -y -qq --auto-remove postgresql postgresql-common >/dev/null
-    rm -rf /etc/systemd/system/{cs-plane,custos,custos-portal}.service \
-        /usr/local/bin/{cs,custos-server} /var/lib/postgresql /etc/postgresql /opt/node /opt/custos \
-        /etc/default/cs-plane /etc/default/custos /var/www/jupyter.cybershuttle.org \
-        /home/ubuntu/.cybershuttle /home/ubuntu/.cache/node /tmp/cs-1000 /tmp/deployment-csvm
+    rm -rf /etc/systemd/system/cs-plane.service \
+        /usr/local/bin/cs /var/lib/postgresql /etc/postgresql \
+        /etc/default/cs-plane /var/www/jupyter.cybershuttle.org \
+        /home/ubuntu/.cybershuttle /tmp/cs-1000 /tmp/deployment-csvm
     systemctl daemon-reload
 fi
 systemctl reload nginx
