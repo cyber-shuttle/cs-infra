@@ -5,6 +5,6 @@ under `root/`, its encrypted secrets under `secrets/`, and `up.sh` / `down.sh` t
 
 | Deployment | Host | Serves |
 |---|---|---|
-| [deployment-csvm](deployment-csvm/README.md) | `cs-api` (3.142.234.94) | cs-plane, CyberShuttle Jupyter and Custos |
+| [deployment-csvm](deployment-csvm/README.md) | `cs-api` (3.142.234.94) | cs-plane and CyberShuttle Jupyter |
 
 Secret values are committed only age-encrypted; see each deployment's README.
