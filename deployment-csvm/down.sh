@@ -14,7 +14,7 @@ if [ -n "$PURGE" ]; then
     rm -rf /etc/systemd/system/cs-plane.service \
         /usr/local/bin/cs /var/lib/postgresql /etc/postgresql \
         /etc/default/cs-plane /var/www/jupyter.cybershuttle.org \
-        /home/ubuntu/.cybershuttle /tmp/cs-1000 /tmp/deployment-csvm
+        /home/ubuntu/.cybershuttle /tmp/cs-$(id -u ubuntu) /tmp/deployment-csvm
     systemctl daemon-reload
 fi
 systemctl reload nginx

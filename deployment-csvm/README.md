@@ -53,12 +53,6 @@ It also keeps a few files, such as rendered SSH configs and uploaded keys, under
 cs-plane does not migrate its stored rows between releases. When a release's CHANGELOG gives upgrade steps, stop
 cs-plane and follow them on the VM, running its SQL with `psql -d cybershuttle`, before `up.sh` installs that release.
 
-To upgrade a VM that still runs Custos, after following cs-plane's CHANGELOG upgrade steps: `systemctl disable --now
-custos custos-portal`, `rm /etc/systemd/system/custos{,-portal}.service /etc/default/custos
-/etc/nginx/conf.d/{custos,jupyter,jupyterapi}.cybershuttle.org.conf`, `rm -r /opt/custos /opt/node
-/usr/local/bin/custos-server`, `certbot delete --cert-name csvm`, `DROP SCHEMA custos CASCADE` in
-`psql -d cybershuttle`, then `up.sh`, which reinstalls the nginx sites under a new certificate.
-
 ## Secrets
 
 The secrets live in `secrets/`, one `NAME=value` per line, with each value encrypted with
