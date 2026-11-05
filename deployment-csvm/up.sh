@@ -3,12 +3,12 @@
 set -euo pipefail
 here=$(cd "$(dirname "$0")" && pwd)
 host=${CSVM_HOST:-cs-api}
-cs_plane=${CS_PLANE:-$here/../../cs-plane}
+airavata=${AIRAVATA:-$here/../../airavata}
 cs_jupyter=${CS_JUPYTER:-$here/../../cs-jupyter}
 key=${CS_INFRA_KEY:-$HOME/.config/cybershuttle/sops.key}
 secrets() {
     cat <<'MAP'
-cs-plane.env  /etc/default/cs-plane
+airavata.env  /etc/default/airavata
 MAP
 }
 # Each line of a secrets file is NAME=value, with the value age-encrypted and base64-encoded.
@@ -23,8 +23,8 @@ secrets | while read -r file _; do decrypt "$file" >/dev/null; done
 
 stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
-(cd "$cs_plane" && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o "$stage/cs" .)
-(cd "$cs_jupyter" && bun install --frozen-lockfile && bun run build)
+(cd "$airavata" && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o "$stage/airavata-server" ./cmd/airavata-server)
+(cd "$cs_jupyter" && AIRAVATA_SPEC="$airavata/docs/openapi.yaml" bun install --frozen-lockfile && bun run build)
 cp -R "$cs_jupyter/dist" "$stage/site"
 perl -pi -e 's#("cybershuttlePlaneApiUrl": *)"[^"]*"#$1"https://jupyterapi.cybershuttle.org/api/v1"#' "$stage/site/jupyter-lite.json"
 cp -R "$here/root" "$here/install.sh" "$stage/"

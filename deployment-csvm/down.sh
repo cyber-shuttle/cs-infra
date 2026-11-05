@@ -6,15 +6,15 @@ set -euo pipefail
 # shellcheck disable=SC2029 # --purge is meant to expand here and travel to the VM
 ssh "${CSVM_HOST:-cs-api}" "sudo PURGE='${1:-}' bash -s" <<'REMOTE'
 set -euo pipefail
-systemctl disable --now cs-plane postgresql 2>/dev/null || true
+systemctl disable --now airavata postgresql 2>/dev/null || true
 rm -f /etc/nginx/conf.d/{jupyter,jupyterapi}.cybershuttle.org.conf
 if [ -n "$PURGE" ]; then
     certbot delete --non-interactive --cert-name csvm >/dev/null 2>&1 || true
     DEBIAN_FRONTEND=noninteractive apt-get purge -y -qq --auto-remove postgresql postgresql-common >/dev/null
-    rm -rf /etc/systemd/system/cs-plane.service \
-        /usr/local/bin/cs /var/lib/postgresql /etc/postgresql \
-        /etc/default/cs-plane /var/www/jupyter.cybershuttle.org \
-        /home/ubuntu/.cybershuttle /tmp/cs-$(id -u ubuntu) /tmp/deployment-csvm
+    rm -rf /etc/systemd/system/airavata.service \
+        /usr/local/bin/airavata-server /var/lib/postgresql /etc/postgresql /var/lib/airavata \
+        /etc/default/airavata /etc/default/airavata-root /var/www/jupyter.cybershuttle.org \
+        /tmp/deployment-csvm
     systemctl daemon-reload
 fi
 systemctl reload nginx
