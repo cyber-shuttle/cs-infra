@@ -1,0 +1,24 @@
+[Unit]
+Description=The CyberShuttle API
+After=postgresql.service
+
+[Service]
+User=ubuntu
+StateDirectory=airavata
+EnvironmentFile=/etc/default/airavata
+EnvironmentFile=/etc/default/airavata-root
+Environment=SERVER_PORT=8045
+Environment=AIRAVATA_DB_DSN=postgres:///airavata?host=/var/run/postgresql
+Environment=AIRAVATA_DB_AUTO_MIGRATE=false
+Environment=AIRAVATA_DASHBOARD_ENABLED=false
+Environment=AIRAVATA_WORKFLOW_BACKEND_SQLITE_PATH=/var/lib/airavata/orchestrator.sqlite
+Environment=AIRAVATA_PUBLIC_URL=https://jupyterapi.cybershuttle.org
+Environment=AIRAVATA_CORS_ALLOWED_ORIGINS=https://jupyter.cybershuttle.org
+Environment=CILOGON_CLIENT_ID=cilogon:oa4mp,2012:/client_id/4738a93a9b45576c741063718d55143b
+ExecStartPre=/usr/local/bin/airavata-server migrate up
+ExecStart=/usr/local/bin/airavata-server
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
